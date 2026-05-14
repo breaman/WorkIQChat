@@ -7,6 +7,11 @@ var osArch = System.Runtime.InteropServices.RuntimeInformation.OSArchitecture;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
+var existingOpenAIName = builder.AddParameter("existingOpenAIName");
+var existingOpenAIResourceGroup = builder.AddParameter("existingOpenAIResourceGroup");
+var aiModel = builder.AddAzureOpenAI("ai-model");
+aiModel.AsExisting(existingOpenAIName, existingOpenAIResourceGroup);
+
 var dbPassword = builder.AddParameter("sql-password", "P@ssw0rd!")
     .InitiallyHidden();
 
@@ -51,6 +56,7 @@ builder.AddProject<Projects.WorkIQChat_Server>("server", "https")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck(Constants.HealthEndpointPath)
     .WithReference(db)
+    .WithReference(aiModel)
     .WaitForCompletion(migrations);
 
 builder.Build().Run();

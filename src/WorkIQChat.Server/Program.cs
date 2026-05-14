@@ -2,6 +2,7 @@ using System.Diagnostics;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 
 using Serilog;
 
@@ -10,8 +11,10 @@ using WorkIQChat.Data.Models;
 using WorkIQChat.Server.Components;
 using WorkIQChat.Server.Components.Account;
 using WorkIQChat.Server.Components.Email;
+using WorkIQChat.Server.Hubs;
 using WorkIQChat.Server.Services;
 using WorkIQChat.ServiceDefaults;
+using WorkIQChat.Shared;
 
 Serilog.Debugging.SelfLog.Enable(msg => Debug.WriteLine(msg));
 
@@ -35,12 +38,19 @@ try
 
     builder.AddServiceDefaults();
 
+    builder.Services.AddSignalR();
+
     builder.Services.AddRazorComponents()
         .AddInteractiveWebAssemblyComponents()
         .AddAuthenticationStateSerialization();
 
     builder.Services.AddCascadingAuthenticationState();
     builder.Services.AddScoped<IdentityRedirectManager>();
+
+    // use this version for Azure OpenAI
+    builder.AddAzureOpenAIClient("ai-model")
+        .AddChatClient("gpt-5.1-chat")
+        .UseFunctionInvocation();
 
     builder.Services.AddAuthentication(options =>
         {
@@ -113,6 +123,8 @@ try
     app.MapRazorComponents<App>()
         .AddInteractiveWebAssemblyRenderMode()
         .AddAdditionalAssemblies(typeof(WorkIQChat.Client._Imports).Assembly);
+
+    app.MapHub<ChatHub>(ChatHubConstants.HubUrl);
 
     app.MapAdditionalIdentityEndpoints();
 

@@ -1,0 +1,82 @@
+.chat-bubble {
+    max-width: 75%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    word-break: break-word;
+    line-height: 1.4;
+}
+
+.chat-bubble--user {
+    background-color: var(--bs-primary);
+    color: #fff;
+    border-bottom-right-radius: 0.2rem;
+    white-space: pre-wrap;
+}
+
+.chat-bubble--ai {
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+    border-bottom-left-radius: 0.2rem;
+}
+
+/* Markdown rendered content inside AI bubbles */
+.chat-bubble--ai .markdown-body > *:first-child {
+    margin-top: 0;
+}
+
+.chat-bubble--ai .markdown-body > *:last-child {
+    margin-bottom: 0;
+}
+
+.chat-bubble--ai .markdown-body p {
+    margin-bottom: 0.5rem;
+}
+
+.chat-bubble--ai .markdown-body pre {
+    background-color: var(--bs-tertiary-bg);
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    margin-bottom: 0.5rem;
+    font-size: 0.875em;
+}
+
+.chat-bubble--ai .markdown-body code {
+    background-color: var(--bs-tertiary-bg);
+    border-radius: 0.25rem;
+    padding: 0.1em 0.35em;
+    font-size: 0.875em;
+}
+
+.chat-bubble--ai .markdown-body pre code {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+.chat-bubble--ai .markdown-body ul,
+.chat-bubble--ai .markdown-body ol {
+    padding-left: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.chat-bubble--ai .markdown-body blockquote {
+    border-left: 3px solid var(--bs-border-color);
+    padding-left: 0.75rem;
+    color: var(--bs-secondary-color);
+    margin: 0.5rem 0;
+}
+
+.chat-bubble--ai .markdown-body table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    font-size: 0.9em;
+}
+
+.chat-bubble--ai .markdown-body th,
+.chat-bubble--ai .markdown-body td {
+    border: 1px solid var(--bs-border-color);
+    padding: 0.35rem 0.6rem;
+    text-align: left;
+}
