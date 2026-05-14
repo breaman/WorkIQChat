@@ -58,6 +58,43 @@ try
             options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
         })
         .AddIdentityCookies();
+
+    // Register Microsoft Entra external login when AzureAd:ClientId is configured.
+    // This allows the app to request a Work IQ-scoped access token (WorkIQAgent.Ask)
+    // during the sign-in flow, which the ChatHub then uses to call the Work IQ API.
+    // To enable: register an Entra app with the WorkIQAgent.Ask delegated permission
+    // and set AzureAd:TenantId, AzureAd:ClientId, and AzureAd:ClientSecret in configuration.
+    // See: https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/work-iq-api-quickstart
+    var azureAdSection = builder.Configuration.GetSection("AzureAd");
+    if (!string.IsNullOrEmpty(azureAdSection["ClientId"]))
+    {
+        builder.Services.AddAuthentication()
+            .AddOpenIdConnect("Microsoft", "Microsoft", options =>
+            {
+                // Use the tenant-specific v2.0 authority for proper Entra delegated auth.
+                options.Authority = $"https://login.microsoftonline.com/{azureAdSection["TenantId"]}/v2.0";
+                options.ClientId = azureAdSection["ClientId"]!;
+                options.ClientSecret = azureAdSection["ClientSecret"];
+                options.ResponseType = "code";
+
+                // SaveTokens persists the access_token in the authentication cookie so it
+                // can be retrieved later via HttpContext.GetTokenAsync("access_token").
+                options.SaveTokens = true;
+
+                options.Scope.Clear();
+                options.Scope.Add("openid");
+                options.Scope.Add("profile");
+                options.Scope.Add("email");
+                // offline_access allows token refresh without re-prompting the user.
+                options.Scope.Add("offline_access");
+                // Request the Work IQ scope so the issued access_token can be used
+                // directly with the Work IQ API (audience: api://workiq.svc.cloud.microsoft).
+                options.Scope.Add("api://workiq.svc.cloud.microsoft/WorkIQAgent.Ask");
+
+                options.CallbackPath = "/signin-microsoft";
+            });
+    }
+
     builder.Services.AddAuthorization();
 
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -87,6 +124,20 @@ try
 
     builder.Services.AddSingleton<IEmailSender<User>, IdentityNoOpEmailSender>();
     builder.Services.AddScoped<IUserService, HttpUserService>();
+
+    // Register the Work IQ service and its named HttpClient.
+    // The named client sets the base address and the A2A-Version header required by the
+    // Work IQ Gateway (https://workiq.svc.cloud.microsoft/a2a/).
+    // See: https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/work-iq-api-overview
+    builder.Services.AddHttpClient(WorkIQService.HttpClientName, client =>
+    {
+        client.BaseAddress = new Uri("https://workiq.svc.cloud.microsoft/a2a/");
+        // A2A-Version: 1.0 enables v1.0 method names (SendMessage) and wire format.
+        // Omitting this header causes the gateway to default to the v0.3 protocol.
+        client.DefaultRequestHeaders.Add("A2A-Version", "1.0");
+        client.Timeout = TimeSpan.FromMinutes(2);
+    });
+    builder.Services.AddScoped<IWorkIQService, WorkIQService>();
 
     // Add route configuration to enforce lowercase URLs for better SEO
     builder.Services.Configure<RouteOptions>(options =>
