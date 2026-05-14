@@ -1,0 +1,17 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.3.2">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.SqlServer" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\WorkIQChat.Server\WorkIQChat.Server.csproj" />
+    <ProjectReference Include="..\WorkIQChat.ServiceDefaults\WorkIQChat.ServiceDefaults.csproj" IsAspireProjectResource="false" />
+  </ItemGroup>
+
+</Project>
