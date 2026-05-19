@@ -14,6 +14,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.AI" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
+    <PackageReference Include="ModelContextProtocol.Core" />
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.MSSqlServer" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" />

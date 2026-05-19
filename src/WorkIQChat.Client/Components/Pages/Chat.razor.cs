@@ -56,12 +56,18 @@ public partial class Chat : ComponentBase, IAsyncDisposable
         _inputMessage = string.Empty;
         _messages.Add(new ChatMessage(userText, IsUser: true, DateTimeOffset.UtcNow));
 
+        // Build the full conversation history to send with this request so the AI model
+        // has context for the entire session and can answer follow-up questions.
+        var history = _messages
+            .Select(m => new ConversationMessage(m.Text, m.IsUser))
+            .ToList();
+
         _isStreaming = true;
         _streamingResponse = string.Empty;
 
         try
         {
-            await foreach (var token in _hubConnection.StreamAsync<string>(ChatHubConstants.StreamMessageMethod, userText))
+            await foreach (var token in _hubConnection.StreamAsync<string>(ChatHubConstants.StreamMessageMethod, history))
             {
                 _streamingResponse += token;
                 StateHasChanged();
